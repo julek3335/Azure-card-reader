@@ -1,0 +1,27 @@
+#!/usr/bin/env python
+import requests
+
+import RPi.GPIO as GPIO
+from mfrc522 import SimpleMFRC522
+url = 'https://cardreaderapp.azurewebsites.net/api/HttpTrigger1?code=hL38kaaxQX0bCIES4peG6i-_PAWO7mpbfsnzbkukjVVpAzFuEBfBaw=='
+reader = SimpleMFRC522()
+
+try:
+        id, text = reader.read()
+        print(id)
+        print(text)
+	myobj = {"cardCode":id}
+	x = requests.post(url,json = myobj)
+	print(x.text)
+finally:
+        GPIO.cleanup()
+
+
+
+
+
+
+
+
+
+
