@@ -1,18 +1,34 @@
 #!/usr/bin/env python
 import requests
-
+import digitalio
+import board
 import RPi.GPIO as GPIO
 from mfrc522 import SimpleMFRC522
+import time
 url = 'https://cardreaderapp.azurewebsites.net/api/HttpTrigger1?code=hL38kaaxQX0bCIES4peG6i-_PAWO7mpbfsnzbkukjVVpAzFuEBfBaw=='
 reader = SimpleMFRC522()
+led = digitalio.DigitalInOut(board.D13)
+led.direction = digitalio.Direction.OUTPUT
+
+ledR = digitalio.DigitalInOut(board.D6)
+ledR.direction = digitalio.Direction.OUTPUT
 
 try:
-        id, text = reader.read()
-        print(id)
-        print(text)
-	myobj = {"cardCode":id}
-	x = requests.post(url,json = myobj)
-	print(x.text)
+    id, text = reader.read()
+    print(id)
+    print(text)
+    id = str(id)
+    myobj = {"cardCode":id}
+    x = requests.post(url,json = myobj)
+    print(x.status_code)
+    if(x.status_code == 302):
+        led.value = True
+        time.sleep(2.4)
+        led.value = False
+    else:
+        ledR.value = True
+        time.sleep(2)
+        ledR.value = False
 finally:
         GPIO.cleanup()
 
