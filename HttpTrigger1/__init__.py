@@ -5,10 +5,12 @@ import os
 
 def main(req: func.HttpRequest) -> func.HttpResponse:
 
-    cardCode = req.params.get('cardCode')
-    
+    cardCode = req.get_json()
+    wartosc = cardCode["cardCode"]
+    cardCodestring = str(wartosc)
+    # logging.info (type(cardCodestring))
     peopleConString = os.getenv('PeopleConString')
-    logging.info(f'conString {peopleConString}')
+    # logging.info(f'conString {peopleConString}')
 
     with pyodbc.connect(peopleConString) as conn:
         with conn.cursor() as cursor:
@@ -16,8 +18,8 @@ def main(req: func.HttpRequest) -> func.HttpResponse:
             row = cursor.fetchone()
             flag = 0
             while row:
-                logging.info (str(row[0]))
-                if cardCode == row[0]:
+                # logging.info (str(row[0]))
+                if cardCodestring == row[0]:
                     flag = 1
                 row = cursor.fetchone()
 
