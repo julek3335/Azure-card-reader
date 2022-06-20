@@ -5,32 +5,61 @@ import board
 import RPi.GPIO as GPIO
 from mfrc522 import SimpleMFRC522
 import time
-url = 'https://cardreaderapp.azurewebsites.net/api/HttpTrigger1?code=hL38kaaxQX0bCIES4peG6i-_PAWO7mpbfsnzbkukjVVpAzFuEBfBaw=='
+urlRead = 'https://cardreaderapp.azurewebsites.net/api/HttpTrigger1?code=hL38kaaxQX0bCIES4peG6i-_PAWO7mpbfsnzbkukjVVpAzFuEBfBaw=='
+urlWrite = 'https://cardreaderapp.azurewebsites.net/api/AddCard?code=N8Xdew1NO-GtTMrc237B18zOBNq_Z1LIMmtPO8-K9ussAzFu-zIQ3A=='
 reader = SimpleMFRC522()
-led = digitalio.DigitalInOut(board.D13)
-led.direction = digitalio.Direction.OUTPUT
+ledG = digitalio.DigitalInOut(board.D13)
+ledG.direction = digitalio.Direction.OUTPUT
 
 ledR = digitalio.DigitalInOut(board.D6)
 ledR.direction = digitalio.Direction.OUTPUT
 
-try:
-    id, text = reader.read()
-    print(id)
-    print(text)
-    id = str(id)
-    myobj = {"cardCode":id}
-    x = requests.post(url,json = myobj)
-    print(x.status_code)
-    if(x.status_code == 302):
-        led.value = True
-        time.sleep(2.4)
-        led.value = False
+ledY = digitalio.DigitalInOut(board.D12)
+ledY.direction = digitalio.Direction.OUTPUT
+
+GPIO.setmode(GPIO.BOARD) # Use physical pin numbering
+GPIO.setup(10, GPIO.IN, pull_up_down=GPIO.PUD_DOWN) # Set pin 10 to be an input pin and set initial value to be pulled low (off)
+
+while True:
+    if GPIO.input(10) == GPIO.HIGH:
+        print("Button was pushed!")
+        ledY.value = True
+        try:
+            id, text = reader.read()
+            print(id)
+            print(text)
+            id = str(id)
+            myobj = {"cardCode":id}
+            x = requests.post(urlWrite,json = myobj)
+            print(x.status_code)
+            if(x.status_code == 302):
+                ledG.value = True
+                time.sleep(2.4)
+                ledG.value = False
+            else:
+                ledR.value = True
+                time.sleep(2)
+                ledR.value = False
+        finally:
+            print("done")
+            ledY.value = False
     else:
-        ledR.value = True
-        time.sleep(2)
-        ledR.value = False
-finally:
-        GPIO.cleanup()
+        id, text = reader.read()
+        print(id)
+        print(text)
+        id = str(id)
+        myobj = {"cardCode":id}
+        x = requests.post(urlRead,json = myobj)
+        print(x.status_code)
+        if(x.status_code == 302):
+            ledG.value = True
+            time.sleep(2.4)
+            ledG.value = False
+        else:
+            ledR.value = True
+            time.sleep(2)
+            ledR.value = False
+
 
 
 
